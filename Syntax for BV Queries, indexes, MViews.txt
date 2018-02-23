@@ -1,0 +1,355 @@
+BV01:
+
+select 
+to_char(sale_date, 'yyyy') as Year,
+sum(quantity_sold) as TotalSold,
+prod_cat_desc,
+country_name
+from 
+g3_sales S,
+g3_products P,
+g3_channels C,
+g3_customers U,
+g3_Prod_cat_desc D,
+g3_country O
+where 
+S.Prod_id = P.Prod_id 
+and S.channel_id = C.channel_id 
+and S.cust_id = U.cust_id 
+and D.prod_cat_desc_id = P.prod_category_id
+and O.country_id = U.country_id
+and channel_desc ='Internet'
+and sale_date between '1-1-2012' and '12-31-2015'
+group by prod_cat_desc, country_name, to_char(sale_date, 'yyyy')
+order by to_char(sale_date, 'yyyy')
+
+
+
+------------------------------------------------------------------------------
+BV02:
+
+
+explain plan for
+select 
+sum(quantity_sold) as TotalSold,
+prod_cat_desc,
+promo_name
+from 
+mst.g3_sales S,
+mst.g3_channels C,
+mst.g3_promotions M,
+mst.g3_products P,
+mst.g3_Prod_cat_desc D
+where 
+S.channel_id = C.channel_id 
+and S.promo_id = M.promo_id 
+and S.prod_id = P.prod_id
+and D.prod_cat_desc_id = P.prod_category_id
+and channel_desc ='Internet'
+and promo_name = 'internet promotion #29-350'
+group by prod_cat_desc, promo_name
+
+
+
+------------------------------------------------------------------------------
+BV03:
+
+
+select 
+S.cust_id,
+cust_first_name||', ' ||cust_last_name as cust_name,
+country_name,
+prod_name,
+payment_date - sale_date as DaystoPay,
+shipping_date - sale_date as DaystoShip
+from
+mst.g3_sales S,
+mst.g3_channels C,
+mst.g3_customers U,
+mst.g3_country O,
+mst.g3_products P
+where 
+S.cust_id = U.cust_id
+and S.channel_id = C.channel_id
+and U.country_id = O.country_id
+and S.prod_id = P.prod_id
+and channel_desc ='Internet'
+
+
+
+----------------------------------------------------------------------------
+BV04
+
+select 
+sum(quantity_sold) as TotalSold,
+prod_cat_desc, 
+cust_income_level
+from
+mst.g3_sales S,
+mst.g3_customers C,
+mst.g3_products P,
+mst.g3_prod_cat_desc D
+where 
+S.cust_id = C.cust_id
+and S.prod_id = P.prod_id
+and P.prod_category_id = D.prod_cat_desc_id
+group by cust_income_level, prod_cat_desc
+order by cust_income_level
+
+
+
+----------------------------------------------------------------------------
+BV05
+
+select 
+S.cust_id,
+cust_first_name||', ' ||cust_last_name as cust_name,
+sum(quantity_sold) as TotalSold,
+cust_main_phone_number
+from 
+mst.g3_sales S,
+mst.g3_customers C
+where 
+S.cust_id = C.cust_id
+group by S.cust_id, cust_first_name||', ' ||cust_last_name, cust_main_phone_number
+Order by sum(quantity_sold) desc
+
+-------------------------------------------------------------------------------
+
+BV06
+
+SELECT 
+to_char(S.SALE_DATE,'YYYY') AS YEAR,
+PROD_CAT_DESC,
+SUM(S.QUANTITY_SOLD*S.UNIT_PRICE) AS AMOUNT_SOLD,
+SUM(P.PROD_MIN_PRICE) AS MIN_PRICE,
+SUM(S.QUANTITY_SOLD*S.UNIT_PRICE)-SUM(P.PROD_MIN_PRICE) AS RAW_PROFIT
+FROM
+G3_PRODUCTS P JOIN G3_SALES S ON S.PROD_ID = P.PROD_ID JOIN G3_PROD_CAT_DESC PD ON P.PROD_CATegory_ID = PD.PROD_CAT_desc_ID
+GROUP BY
+to_char(S.SALE_DATE,'YYYY'),
+PROD_CAT_DESC
+ORDER BY 
+to_char(S.SALE_DATE,'YYYY')
+
+
+-----------------------------------------------------------------------------------
+
+BV07
+
+SELECT 
+PM.PROMO_NAME,
+PM.PROMO_END_DATE-PM.PROMO_BEGIN_DATE AS DAYS_OF_PROMO,
+SUM(S.QUANTITY_SOLD*S.UNIT_PRICE) AS AMOUNT_SOLD,
+SUM(PM.PROMO_COST) AS PROMO_COST,
+SUM(PD.PROD_MIN_PRICE*S.QUANTITY_SOLD) AS PROD_MIN_PRICE,
+SUM(S.QUANTITY_SOLD*S.UNIT_PRICE) - SUM(PM.PROMO_COST) - SUM(PD.PROD_MIN_PRICE*S.QUANTITY_SOLD) AS PROFIT,
+SUM(PD.PROD_LIST_PRICE*S.QUANTITY_SOLD)-SUM(S.QUANTITY_SOLD*S.UNIT_PRICE) AS DISCOUNT
+FROM G3_PRODUCTS PD 
+JOIN G3_SALES S ON S.PROD_ID = PD.PROD_ID
+JOIN G3_PROMOTIONS PM  ON PM.PROMO_ID = S.PROMO_ID
+WHERE
+PROMO_BEGIN_DATE > '04/01/2012' AND PROMO_END_DATE <'04/01/2014'
+GROUP BY
+PM.PROMO_ID,
+PM.PROMO_NAME,
+PM.PROMO_END_DATE-PM.PROMO_BEGIN_DATE
+ORDER BY
+(SUM(S.QUANTITY_SOLD*S.UNIT_PRICE) - SUM(PM.PROMO_COST) - SUM(PD.PROD_MIN_PRICE*S.QUANTITY_SOLD)) DESC
+
+------------------------------------------------------------------------------------------------
+
+Indexes used: 
+
+
+/*+ index(C Binternetindex) */ 
+
+/*+ index(M promonameindex) */ 
+
+/*+ index(PM pbeginindex) */ 
+
+/*+ index(PM pendindex) */ 
+
+
+create index pbeginindex
+on g3_promotions (promo_begin_date)
+
+create index pendindex
+on g3_promotions (promo_end_date)
+
+create bitmapindex internetindex 
+on g3_channels (channel_desc)
+
+create bitmap index promoindex 
+on g3_promotions (promo_name)
+
+----------------------------------------------------------------------------------------------
+
+BV01 Materialized View
+
+CREATE MATERIALIZED VIEW BV1MView
+PCTFREE 20 PCTUSED 20
+STORAGE (INITIAL 8k Next 8k MINEXTENTS 1 PCTINCREASE 10)
+Build Immediate
+Refresh Complete 
+As
+select 
+to_char(sale_date, 'yyyy') as Year,
+sum(quantity_sold) as TotalSold,
+prod_cat_desc,
+country_name
+from 
+g3_sales S,
+g3_products P,
+g3_channels C,
+g3_customers U,
+g3_Prod_cat_desc D,
+g3_country O
+where 
+S.Prod_id = P.Prod_id 
+and S.channel_id = C.channel_id 
+and S.cust_id = U.cust_id 
+and D.prod_cat_desc_id = P.prod_category_id
+and O.country_id = U.country_id
+and channel_desc ='Internet'
+and sale_date between '1-1-2012' and '12-31-2015'
+group by prod_cat_desc, country_name, to_char(sale_date, 'yyyy')
+order by to_char(sale_date, 'yyyy')
+
+----------------------------------------------------------------------------------------------
+
+BV02 Virtual View
+
+CREATE VIEW BV2VVIEW AS 
+select 
+sum(quantity_sold) as TotalSold,
+prod_cat_desc,
+promo_name
+from 
+mst.g3_sales S,
+mst.g3_channels C,
+mst.g3_promotions M,
+mst.g3_products P,
+mst.g3_Prod_cat_desc D
+where 
+S.channel_id = C.channel_id 
+and S.promo_id = M.promo_id 
+and S.prod_id = P.prod_id
+and D.prod_cat_desc_id = P.prod_category_id
+and channel_desc ='Internet'
+and promo_name = 'internet promotion #29-350'
+group by prod_cat_desc, promo_name
+
+----------------------------------------------------------------------------------------------
+
+BV03 Virtual View
+
+CREATE VIEW BV3VVIEW AS 
+select 
+S.cust_id,
+cust_first_name||', ' ||cust_last_name as cust_name,
+country_name,
+prod_name,
+payment_date - sale_date as DaystoPay,
+shipping_date - sale_date as DaystoShip
+from
+mst.g3_sales S,
+mst.g3_channels C,
+mst.g3_customers U,
+mst.g3_country O,
+mst.g3_products P
+where 
+S.cust_id = U.cust_id
+and S.channel_id = C.channel_id
+and U.country_id = O.country_id
+and S.prod_id = P.prod_id
+and channel_desc ='Internet'
+
+----------------------------------------------------------------------------------------------
+
+BV04 Virtual View
+
+select 
+sum(quantity_sold) as TotalSold,
+prod_cat_desc, 
+cust_income_level
+from
+mst.g3_sales S,
+mst.g3_customers C,
+mst.g3_products P,
+mst.g3_prod_cat_desc D
+where 
+S.cust_id = C.cust_id
+and S.prod_id = P.prod_id
+and P.prod_category_id = D.prod_cat_desc_id
+group by cust_income_level, prod_cat_desc
+order by cust_income_level
+
+----------------------------------------------------------------------------------------------
+
+BV05 Virtual View
+
+CREATE VIEW BV5VVIEW AS
+select 
+S.cust_id,
+cust_first_name||', ' ||cust_last_name as cust_name,
+sum(quantity_sold) as TotalSold,
+cust_main_phone_number
+from 
+mst.g3_sales S,
+mst.g3_customers C
+where 
+S.cust_id = C.cust_id
+group by S.cust_id, cust_first_name||', ' ||cust_last_name, cust_main_phone_number
+Order by sum(quantity_sold) desc 
+
+----------------------------------------------------------------------------------------------
+
+BV06 Virtual View
+
+CREATE VIEW BV6VVIEW AS
+SELECT 
+to_char(S.SALE_DATE,'YYYY') AS YEAR,
+PROD_CAT_DESC,
+SUM(S.QUANTITY_SOLD*S.UNIT_PRICE) AS AMOUNT_SOLD,
+SUM(P.PROD_MIN_PRICE) AS MIN_PRICE,
+SUM(S.QUANTITY_SOLD*S.UNIT_PRICE)-SUM(P.PROD_MIN_PRICE) AS RAW_PROFIT
+FROM
+G3_PRODUCTS P JOIN G3_SALES S ON S.PROD_ID = P.PROD_ID JOIN G3_PROD_CAT_DESC PD ON P.PROD_CATegory_ID = PD.PROD_CAT_desc_ID
+GROUP BY
+to_char(S.SALE_DATE,'YYYY'),
+PROD_CAT_DESC
+ORDER BY 
+to_char(S.SALE_DATE,'YYYY')
+
+----------------------------------------------------------------------------------------------
+
+BV07 Materialized View
+
+CREATE MATERIALIZED VIEW BV7MView
+PCTFREE 20 PCTUSED 10
+STORAGE (INITIAL 8k Next 8k MINEXTENTS 1 PCTINCREASE 5)
+Build Immediate
+Refresh Complete 
+As
+SELECT 
+PM.PROMO_NAME,
+PM.PROMO_END_DATE-PM.PROMO_BEGIN_DATE AS DAYS_OF_PROMO,
+SUM(S.QUANTITY_SOLD*S.UNIT_PRICE) AS AMOUNT_SOLD,
+SUM(PM.PROMO_COST) AS PROMO_COST,
+SUM(PD.PROD_MIN_PRICE*S.QUANTITY_SOLD) AS PROD_MIN_PRICE,
+SUM(S.QUANTITY_SOLD*S.UNIT_PRICE) - SUM(PM.PROMO_COST) - SUM(PD.PROD_MIN_PRICE*S.QUANTITY_SOLD) AS PROFIT,
+SUM(PD.PROD_LIST_PRICE*S.QUANTITY_SOLD)-SUM(S.QUANTITY_SOLD*S.UNIT_PRICE) AS DISCOUNT
+FROM G3_PRODUCTS PD 
+JOIN G3_SALES S ON S.PROD_ID = PD.PROD_ID
+JOIN G3_PROMOTIONS PM  ON PM.PROMO_ID = S.PROMO_ID
+WHERE
+PROMO_BEGIN_DATE > '04/01/2012' AND PROMO_END_DATE <'04/01/2014'
+GROUP BY
+PM.PROMO_ID,
+PM.PROMO_NAME,
+PM.PROMO_END_DATE-PM.PROMO_BEGIN_DATE
+ORDER BY
+(SUM(S.QUANTITY_SOLD*S.UNIT_PRICE) - SUM(PM.PROMO_COST) - SUM(PD.PROD_MIN_PRICE*S.QUANTITY_SOLD)) DESC
+
+

@@ -1,0 +1,141 @@
+G3_COUNTRY_SUBREGIONCreate
+CREATE TABLE G3_COUNTRY_SUBREGION (country_subregion_id number GENERATED AS IDENTITY,country_subregion varchar2(30),Constraint country_subregion_id_pk primary key(country_subregion_id))storage(initial 8k next 8kminextents 1 pctincrease 10)pctfree 5 pctused 10;Insertinsert into G3_COUNTRY_SUBREGION (country_subregion) select unique country_subregionfrom liy26.li_customers_intxCheckselect * from g3_country_subregion——————————————————————————————————————————————————————————————————————————————————————————————————————
+
+G3_COUNTRY_REGION
+
+CreateCREATE TABLE G3_COUNTRY_REGION (country_region_id number GENERATED AS IDENTITY,country_region varchar2(20),Constraint country_region_id_pk primary key(country_region_id))storage(initial 8k next 8kminextents 1 pctincrease 10)pctfree 5 pctused 10;Insertinsert into G3_COUNTRY_REGION (country_region) select unique country_regionfrom liy26.li_customers_intxCheckselect * from g3_country_region——————————————————————————————————————————————————————————————————————————————————————————————————————
+
+G3_COUNTRY
+
+Create
+
+create table G3_COUNTRY (COUNTRY_ID number not null, COUNTRY_NAME VARCHAR2(50),COUNTRY_SUBREGION_id number not null,COUNTRY_REGION_id number not null,Constraint country_id_pk primary key(country_id),CONSTRAINT fk_country_subregion_id FOREIGN KEY (country_subregion_id)    REFERENCES g3_country_subregion(country_subregion_id),CONSTRAINT fk_country_region_id FOREIGN KEY (country_region_id)    REFERENCES g3_country_region(country_region_id))storage(initial 8k next 8kminextents 1 pctincrease 10)pctfree 5 pctused 10;VIEW for Table Insertcreate view g3_country_v as select liy26.li_customers_intx.country_id, liy26.li_customers_intx.country_name,g3_country_subregion.country_subregion_id, g3_country_region.country_region_id from liy26.li_customers_intxinner join g3_country_subregionon liy26.li_customers_intx.country_subregion=g3_country_subregion.country_subregioninner join g3_country_regionon  liy26.li_customers_intx.country_region=g3_country_region.country_regionselect * from g3_country_vInsertinsert into g3_country (country_id, country_name, country_subregion_id, country_region_id)select unique country_id, country_name, country_subregion_id, country_region_idfrom g3_country_v
+
+Checkselect * from g3_country
+
+——————————————————————————————————————————————————————————————————————————————————————————————————————
+
+G3_PROMO_SUBCAT_CAT
+
+Create
+
+CREATE TABLE G3_PROMO_SUBCAT_CAT (promo_subcat_id number GENERATED AS IDENTITY,PROMO_SUBCATEGORY varchar2(30) not null,Constraint promo_subcat_id_pk primary key(promo_subcat_id))storage(initial 8k next 8kminextents 1 pctincrease 20)pctfree 10 pctused 20;	
+
+Insertinsert into G3_PROMO_SUBCAT_CAT (promo_subcategory) select unique promo_subcategoryfrom liy26.li_promotions Checkselect * from g3_promo_subcat_cat
+
+——————————————————————————————————————————————————————————————————————————————————————————————————————
+
+G3_PROMO_CAT
+
+Create
+
+CREATE TABLE G3_PROMO_CAT (promo_cat_id number GENERATED AS IDENTITY,PROMO_CATEGORY varchar2(30) not null,Constraint promo_cat_id_pk primary key(promo_cat_id))storage(initial 8k next 8kminextents 1 pctincrease 20)pctfree 10 pctused 20;
+
+Insertinsert into G3_PROMO_CAT (promo_category) select unique promo_categoryfrom liy26.li_promotions Checkselect * from g3_promo_cat
+
+——————————————————————————————————————————————————————————————————————————————————————————————————————
+
+G3_PROMOTIONS
+
+VIEW for Table Insertcreate view g3_promotions_v asselect liy26.li_promotions.promo_id, g3_promo_subcat_cat.promo_subcat_id, g3_promo_cat.promo_cat_id, liy26.li_promotions.promo_name, liy26.li_promotions.promo_cost, liy26.li_promotions.promo_begin_date, liy26.li_promotions.promo_end_datefrom liy26.li_promotionsinner join g3_promo_subcat_caton liy26.li_promotions.promo_subcategory=g3_promo_subcat_cat.promo_subcategoryinner join g3_promo_caton liy26.li_promotions.promo_category=g3_promo_cat.promo_category
+
+Createcreate table G3_PROMOTIONS (promo_id number(6) not null,promo_subcat_id number not null,promo_cat_id number not null,promo_name varchar2(30) not null,promo_cost number(10,2) not null,promo_begin_date date not null,promo_end_date date not null,Constraint promo_id_pk primary key(promo_id),CONSTRAINT fk_promo_subcat_id FOREIGN KEY (promo_subcat_id)    REFERENCES g3_promo_subcat_cat(promo_subcat_id),CONSTRAINT fk_promo_cat_id FOREIGN KEY (promo_cat_id)    REFERENCES g3_promo_cat(promo_cat_id),CONSTRAINT check_promo_cost CHECK (promo_cost>=0),CONSTRAINT check_begin_end_date CHECK (promo_end_date>=promo_begin_date))storage(initial 40k next 40kminextents 1 pctincrease 20)pctfree 15 pctused 20;
+
+Insertinsert into g3_promotions (promo_id, promo_subcat_id, promo_cat_id, promo_name, promo_cost, promo_begin_date, promo_end_date)select promo_id, promo_subcat_id, promo_cat_id, promo_name, promo_cost, promo_begin_date, promo_end_datefrom g3_promotions_v
+
+Check
+
+select * from g3_promotions
+——————————————————————————————————————————————————————————————————————————————————————————————————————
+
+G3_CUSTOMERS
+
+VIEW for Table Insert
+
+create view g3_customers_v asselect liy26.li_customers_intx.cust_id, liy26.li_customers_intx.cust_first_name, liy26.li_customers_intx.cust_last_name, liy26.li_customers_intx.cust_gender, liy26.li_customers_intx.cust_main_phone_number, liy26.li_customers_intx.cust_email, liy26.li_customers_intx.cust_street_address, liy26.li_customers_intx.cust_postal_code, liy26.li_customers_intx.cust_city, liy26.li_customers_intx.cust_state_province, g3_country.country_id, liy26.li_customers_ext.cust_year_of_birth, liy26.li_customers_ext.cust_marital_status, liy26.li_customers_ext.cust_income_level, liy26.li_customers_ext.cust_credit_limitfrom liy26.li_customers_intxinner join g3_countryon liy26.li_customers_intx.country_name=g3_country.country_nameinner join  liy26.li_customers_exton  liy26.li_customers_intx.cust_id= liy26.li_customers_ext.cust_id
+
+Createcreate table g3_customers(cust_id number(22) not null,cust_first_name varchar2(20) not null,cust_last_name varchar2(40) not null,cust_gender char(1),cust_main_phone_number varchar2(25) not null, cust_email varchar2(30), cust_street_address varchar2(40) not null,cust_postal_code number not null,cust_city varchar2(30) not null,cust_state_province varchar2(40) not null,country_id number not null,  cust_year_of_birth number(4), cust_marital_status varchar2(20),cust_income_level varchar2(30),cust_credit_limit number(22),Constraint cust_id_pk primary key(cust_id), CONSTRAINT fk_country_id FOREIGN KEY (country_id)    REFERENCES g3_country(country_id),CONSTRAINT check_gender CHECK (cust_gender='M' or cust_gender='F' or cust_gender='null'))storage(initial 9872k next 9872kminextents 1 pctincrease 30)pctfree 20 pctused 20;Insertinsert into g3_customers (cust_id, cust_first_name, cust_last_name, cust_gender, cust_main_phone_number, cust_email, cust_street_address, cust_postal_code, cust_City, cust_state_province, country_id, cust_year_of_birth, cust_marital_status, cust_income_level, cust_credit_limit)select cust_id, cust_first_name, cust_last_name, cust_gender, cust_main_phone_number, cust_email, cust_street_address, cust_postal_code, cust_City, cust_state_province, country_id, cust_year_of_birth, cust_marital_status, cust_income_level, cust_credit_limitfrom g3_customers_v
+
+Checkselect * from g3_customers
+
+——————————————————————————————————————————————————————————————————————————————————————————————————————
+
+G3_SALES
+
+Create
+
+create table g3_sales (salestrans_id number(22) not null,prod_id number(22) not null,cust_id number(22) not null,channel_id number(22) not null,promo_id number(22) not null,sale_date date not null,shipping_date date not null,payment_date date not null,quantity_sold number(22) not null,unit_price number(22) not null,Constraint salestrans_id_pk primary key(salestrans_id),CONSTRAINT fk_prod_id FOREIGN KEY (prod_id)    REFERENCES g3_products(prod_id),CONSTRAINT fk_cust_id FOREIGN KEY (cust_id)    REFERENCES g3_customers(cust_id),CONSTRAINT fk_channel_id FOREIGN KEY (channel_id)    REFERENCES g3_channels(channel_id),CONSTRAINT fk_promo_id FOREIGN KEY (promo_id)    REFERENCES g3_promotions(promo_id),CONSTRAINT check_ship_pay_date CHECK (sale_date<=payment_date),CONSTRAINT check_sale_ship_date CHECK (sale_date<=shipping_date),CONSTRAINT check_quantity_sold CHECK (quantity_sold>=0),CONSTRAINT check_unit_price CHECK (unit_price>=0))storage(initial 36656k next 36656kminextents 1 pctincrease 30)pctfree 20 pctused 20;
+
+Insert (from _12_13)insert into g3_sales (salestrans_id, prod_id, cust_id, channel_id, promo_id, sale_date, shipping_date, payment_date, quantity_sold, unit_price)select salestrans_id, prod_id, cust_id, channel_id, promo_id, sale_date, shipping_date, payment_date, quantity_sold, unit_pricefrom liy26.li_sales_12_13
+
+Insert (from _14)insert into g3_sales (salestrans_id, prod_id, cust_id, channel_id, promo_id, sale_date, shipping_date, payment_date, quantity_sold, unit_price)select salestrans_id, prod_id, cust_id, channel_id, promo_id, sale_date, shipping_date, payment_date, quantity_sold, unit_pricefrom liy26.li_sales_14
+
+Checkselect * from g3_sales
+
+——————————————————————————————————————————————————————————————————————————————————————————————————————
+
+G3_CHANNELS
+
+Create
+
+create table G3_channels(channel_id number not null,channel_desc varchar2(20) not null,channel_class varchar2(20) not null,Constraint channel_id_pk primary key(channel_id))storage(initial 8k next 8kminextents 1 pctincrease 10)pctfree 5 pctused 10;	Insertinsert into G3_channels (channel_id, channel_desc, channel_class) select channel_id, channel_desc, channel_classfrom liy26.li_channels
+
+Checkselect * from g3_channels
+
+——————————————————————————————————————————————————————————————————————————————————————————————————————
+
+G3_PROD_SUBCAT_DESC
+
+Create
+
+create table G3_PROD_SUBCAT_DESC (prod_subcat_desc_id number GENERATED AS IDENTITY,prod_subcat_desc varchar2(2000) not null,Constraint prod_subcat_desc_id_pk primary key(prod_subcat_desc_id))storage(initial 8k next 8kminextents 1 pctincrease 15)pctfree 10 pctused 15;	
+
+Insertinsert into G3_PROD_SUBCAT_DESC (prod_subcat_desc) select unique prod_subcat_descfrom liy26.li_products
+
+Checkselect * from g3_prod_subcat_desc
+
+
+——————————————————————————————————————————————————————————————————————————————————————————————————————
+
+G3_PROD_SUBCAT
+
+VIEW for Table Insertcreate view g3_prod_subcat_v asselect unique liy26.li_products.prod_subcategory, g3_prod_subcat_desc.prod_subcat_desc_idfrom liy26.li_productsinner join g3_prod_subcat_descon liy26.li_products.prod_subcat_desc=g3_prod_subcat_desc.prod_subcat_desc
+
+Createcreate table G3_PROD_SUBCAT (prod_subcategory_id number GENERATED AS IDENTITY,prod_subcat_desc_id number not null,prod_subcategory varchar2(50) not null,Constraint prod_subcategory_id_pk primary key(prod_subcategory_id),CONSTRAINT fk_prod_subcat_desc_id FOREIGN KEY (prod_subcat_desc_id)    REFERENCES g3_prod_subcat_desc(prod_subcat_desc_id))storage(initial 8k next 8kminextents 1 pctincrease 15)pctfree 10 pctused 15;	Insertinsert into G3_PROD_SUBCAT (prod_subcategory, prod_subcat_desc_id) select prod_subcategory, prod_subcat_desc_idfrom g3_prod_subcat_v
+
+Checkselect * from g3_prod_subcat
+
+——————————————————————————————————————————————————————————————————————————————————————————————————————
+
+G3_PROD_CAT_DESC
+
+Create
+
+create table G3_PROD_CAT_DESC (prod_cat_desc_id number GENERATED AS IDENTITY,prod_cat_desc varchar2(2000) not null,Constraint prod_cat_desc_id_pk primary key(prod_cat_desc_id))storage(initial 8k next 8kminextents 1 pctincrease 15)pctfree 10 pctused 15;	
+
+Insertinsert into G3_PROD_CAT_DESC (prod_cat_desc) select unique prod_cat_descfrom liy26.li_products
+
+Checkselect * from g3_prod_cat_desc
+
+
+——————————————————————————————————————————————————————————————————————————————————————————————————————
+
+G3_PROD_CAT
+
+VIEW for Table Insertcreate view g3_prod_cat_v asselect unique liy26.li_products.prod_category, g3_prod_cat_desc.prod_cat_desc_idfrom liy26.li_productsinner join g3_prod_cat_descon liy26.li_products.prod_cat_desc=g3_prod_cat_desc.prod_cat_desc
+
+Createcreate table G3_PROD_CAT (prod_category_id number GENERATED AS IDENTITY,prod_cat_desc_id number not null,prod_category varchar2(50) not null,Constraint prod_category_id_pk primary key(prod_category_id),CONSTRAINT fk_prod_cat_desc_id FOREIGN KEY (prod_cat_desc_id)    REFERENCES g3_prod_cat_desc(prod_cat_desc_id))storage(initial 8k next 8kminextents 1 pctincrease 15)pctfree 10 pctused 15;	
+
+Insertinsert into G3_PROD_CAT (prod_category, prod_cat_desc_id) select prod_category, prod_cat_desc_idfrom g3_prod_cat_v
+
+Checkselect * from g3_prod_cat
+——————————————————————————————————————————————————————————————————————————————————————————————————————
+
+G3_PRODUCTS
+
+VIEW for Table Insertcreate view g3_products_v as select liy26.li_products.prod_id, g3_prod_subcat.prod_subcategory_id, g3_prod_cat.prod_category_id, liy26.li_products.prod_name, liy26.li_products.prod_desc, liy26.li_products.prod_list_price, liy26.li_products.prod_min_price, liy26.li_products.supplier_idfrom liy26.li_productsinner join g3_prod_subcaton liy26.li_products.prod_subcategory=g3_prod_subcat.prod_subcategoryinner join g3_prod_caton liy26.li_products.prod_category=g3_prod_cat.prod_category
+
+Createcreate table G3_PRODUCTS (prod_id number(6) not null, prod_subcategory_id number not null,prod_category_id number not null,prod_name varchar2(50) not null,prod_desc varchar2(4000) not null,prod_list_price number(8,2) not null,prod_min_price number(8,2) not null,supplier_id number(6) not null,Constraint prod_id_pk primary key(prod_id),CONSTRAINT fk_prod_subcategory_id FOREIGN KEY (prod_subcategory_id)    REFERENCES g3_prod_subcat(prod_subcategory_id),CONSTRAINT fk_prod_category_id FOREIGN KEY (prod_category_id)    REFERENCES g3_prod_cat(prod_category_id),CONSTRAINT check_prod_list_price CHECK (prod_list_price>=0),CONSTRAINT check_prod_min_price CHECK (prod_min_price>=0),CONSTRAINT check_prod_compare CHECK (prod_list_price>=prod_min_price))storage(initial 8k next 8kminextents 1 pctincrease 20)pctfree 15 pctused 20;
+
+Insertinsert into g3_products(prod_id, prod_subcategory_id, prod_category_id, prod_name, prod_desc, prod_list_price, prod_min_price, supplier_id)select prod_id, prod_subcategory_id, prod_category_id, prod_name, prod_desc, prod_list_price, prod_min_price, supplier_idfrom g3_products_vCheckselect * from g3_products
+
